@@ -20,91 +20,90 @@ public class Controller : MonoBehaviour
     private int clickedTile = -1;
     private int clickedCop = 0;
     List<int> casillasRobber = new List<int>();
-                    
+
+
     void Start()
-    {        
+    {
         InitTiles();
         InitAdjacencyLists();
         state = Constants.Init;
     }
-        
+
     //Rellenamos el array de casillas y posicionamos las fichas
     void InitTiles()
     {
         for (int fil = 0; fil < Constants.TilesPerRow; fil++)
         {
-            GameObject rowchild = board.transform.GetChild(fil).gameObject;            
+            GameObject rowchild = board.transform.GetChild(fil).gameObject;
 
             for (int col = 0; col < Constants.TilesPerRow; col++)
             {
-                GameObject tilechild = rowchild.transform.GetChild(col).gameObject;                
-                tiles[fil * Constants.TilesPerRow + col] = tilechild.GetComponent<Tile>();                         
+                GameObject tilechild = rowchild.transform.GetChild(col).gameObject;
+                tiles[fil * Constants.TilesPerRow + col] = tilechild.GetComponent<Tile>();
             }
         }
-                
-        cops[0].GetComponent<CopMove>().currentTile=Constants.InitialCop0;
-        cops[1].GetComponent<CopMove>().currentTile=Constants.InitialCop1;
-        robber.GetComponent<RobberMove>().currentTile=Constants.InitialRobber;           
+
+        cops[0].GetComponent<CopMove>().currentTile = Constants.InitialCop0;
+        cops[1].GetComponent<CopMove>().currentTile = Constants.InitialCop1;
+        robber.GetComponent<RobberMove>().currentTile = Constants.InitialRobber;
     }
 
     public void InitAdjacencyLists()
     {
         //Matriz de adyacencia
-        int[,] matriu = new int[Constants.NumTiles, Constants.NumTiles];
+        int[,] matriz = new int[Constants.NumTiles, Constants.NumTiles];
 
-        //TODO: Inicializar matriz a 0's
+        // Inicializar matriz a 0's
 
-        for (int i=0; i<Constants.NumTiles; i++)
+        for (int i = 0; i < Constants.NumTiles; i++)
         {
-            for(int j = 0; j<Constants.NumTiles; j++)
+            for (int j = 0; j < Constants.NumTiles; j++)
             {
-                matriu[i, j] = 0;
+                matriz[i, j] = 0;
             }
         }
 
-        //TODO: Para cada posición, rellenar con 1's las casillas adyacentes (arriba, abajo, izquierda y derecha
-        //TODO: Rellenar la lista "adjacency" de cada casilla con los índices de sus casillas adyacentes
+        //Para cada posición, rellenar con 1's las casillas adyacentes (arriba, abajo, izquierda y derecha)
+        //Rellenar la lista "adjacency" de cada casilla con los índices de sus casillas adyacentes
 
         int t = 0;
-
-        for(int x=0; x < Constants.NumTiles; x++)
+        for (int x = 0; x < Constants.NumTiles; x++)
         {
             for (int c = 0; c < Constants.NumTiles; c++)
             {
-                if (c > Constants.NumTiles || c<0)
+
+                if (c > Constants.NumTiles || c < 0)
                 {
                 }
-                else if (c==x+1 || c==x-1 || c==x+8 || c==x-8)
+                else if (c == x + 1 || c == x - 1 || c == x + 8 || c == x - 8)
                 {
-                    matriu[x, c] = 1;
+                    matriz[x, c] = 1;
                     tiles[x].adjacency.Add(c);
                 }
 
                 int x2 = x + 1;
-                if(x2%8 == 0 && x!=0 && x2 < Constants.NumTiles)
+                if (x2 % 8 == 0 && x != 0 && x2 < Constants.NumTiles)
                 {
                     tiles[x].adjacency.Remove(x2);
-                    matriu[x, x2] = 0;
-
+                    matriz[x, x2] = 0;
                 }
 
                 int x3 = x - 1;
-
-                if(x%8==0 && x != 0)
+                if (x % 8 == 0 && x != 0)
                 {
-                    tiles[x].adjacency.Remove(x3);
-                    matriu[x, x3] = 0;
+                    tiles[x].adjacency.Remove(x - 1);
+                    matriz[x, x - 1] = 0;
                 }
+
 
                 t++;
             }
         }
-
-    }
+    } // InitAdjacencyLists()
 
     //Reseteamos cada casilla: color, padre, distancia y visitada
     public void ResetTiles()
-    {        
+    {
         foreach (Tile tile in tiles)
         {
             tile.Reset();
@@ -116,7 +115,7 @@ public class Controller : MonoBehaviour
         switch (state)
         {
             case Constants.Init:
-            case Constants.CopSelected:                
+            case Constants.CopSelected:
                 clickedCop = cop_id;
                 clickedTile = cops[cop_id].GetComponent<CopMove>().currentTile;
                 tiles[clickedTile].current = true;
@@ -124,27 +123,27 @@ public class Controller : MonoBehaviour
                 ResetTiles();
                 FindSelectableTiles(true);
 
-                state = Constants.CopSelected;                
-                break;            
+                state = Constants.CopSelected;
+                break;
         }
     }
 
     public void ClickOnTile(int t)
-    {                     
+    {
         clickedTile = t;
 
         switch (state)
-        {            
+        {
             case Constants.CopSelected:
                 //Si es una casilla roja, nos movemos
                 if (tiles[clickedTile].selectable)
-                {                  
+                {
                     cops[clickedCop].GetComponent<CopMove>().MoveToTile(tiles[clickedTile]);
-                    cops[clickedCop].GetComponent<CopMove>().currentTile=tiles[clickedTile].numTile;
-                    tiles[clickedTile].current = true;   
-                    
+                    cops[clickedCop].GetComponent<CopMove>().currentTile = tiles[clickedTile].numTile;
+                    tiles[clickedTile].current = true;
+
                     state = Constants.TileSelected;
-                }                
+                }
                 break;
             case Constants.TileSelected:
                 state = Constants.Init;
@@ -158,14 +157,14 @@ public class Controller : MonoBehaviour
     public void FinishTurn()
     {
         switch (state)
-        {            
+        {
             case Constants.TileSelected:
                 ResetTiles();
 
                 state = Constants.RobberTurn;
                 RobberTurn();
                 break;
-            case Constants.RobberTurn:                
+            case Constants.RobberTurn:
                 ResetTiles();
                 IncreaseRoundCount();
                 if (roundCount <= Constants.MaxRounds)
@@ -179,40 +178,43 @@ public class Controller : MonoBehaviour
 
     public void RobberTurn()
     {
-
-        Debug.Log("RobberTurn");
+        Debug.Log("Robbers turn");
 
         clickedTile = robber.GetComponent<RobberMove>().currentTile;
         tiles[clickedTile].current = true;
         FindSelectableTiles(false);
 
-        /*TODO: Cambia el código de abajo para hacer lo siguiente
+
+        /* 
         - Elegimos una casilla aleatoria entre las seleccionables que puede ir el caco
         - Movemos al caco a esa casilla
         - Actualizamos la variable currentTile del caco a la nueva casilla
         */
 
-       for (int i=0; i<casillasRobber.Count; i++)
+        for (int i = 0; i < casillasRobber.Count; i++)
         {
             Debug.Log(casillasRobber[i]);
-
+            if (tiles[i].selectable)
+            {
+                casillasRobber.Add(i);
+            }
         }
 
-        System.Random numeroRandom = new System.Random();
+        System.Random ran = new System.Random();
 
-        int num = numeroRandom.Next(casillasRobber.Count); // Elegimos un Nº aleatorio no negativo
-
+        int num = ran.Next(casillasRobber.Count);
         int randomList = casillasRobber[num];
+
+        Debug.Log("Random number --> " + randomList);
+
         robber.GetComponent<RobberMove>().currentTile = randomList;
 
         robber.GetComponent<RobberMove>().MoveToTile(tiles[randomList]);
-
-        // robber.GetComponent<RobberMove>().MoveToTile(tiles[robber.GetComponent<RobberMove>().currentTile]);
-    }
+    } // RobberTurn()
 
     public void EndGame(bool end)
     {
-        if(end)
+        if (end)
             finalMessage.text = "You Win!";
         else
             finalMessage.text = "You Lose!";
@@ -225,7 +227,7 @@ public class Controller : MonoBehaviour
         cops[0].GetComponent<CopMove>().Restart(tiles[Constants.InitialCop0]);
         cops[1].GetComponent<CopMove>().Restart(tiles[Constants.InitialCop1]);
         robber.GetComponent<RobberMove>().Restart(tiles[Constants.InitialRobber]);
-                
+
         ResetTiles();
 
         playAgainButton.interactable = false;
@@ -239,7 +241,7 @@ public class Controller : MonoBehaviour
     public void InitGame()
     {
         state = Constants.Init;
-         
+
     }
 
     public void IncreaseRoundCount()
@@ -250,13 +252,15 @@ public class Controller : MonoBehaviour
 
     public void FindSelectableTiles(bool cop)
     {
-                 
-        int indexcurrentTile;        
 
-        if (cop==true)
+        int indexcurrentTile;
+
+        if (cop == true) //nodo fuente
             indexcurrentTile = cops[clickedCop].GetComponent<CopMove>().currentTile;
         else
             indexcurrentTile = robber.GetComponent<RobberMove>().currentTile;
+
+        casillasRobber.Clear();
 
         //La ponemos rosa porque acabamos de hacer un reset
         tiles[indexcurrentTile].current = true;
@@ -264,14 +268,47 @@ public class Controller : MonoBehaviour
         //Cola para el BFS
         Queue<Tile> nodes = new Queue<Tile>();
 
-        //TODO: Implementar BFS. Los nodos seleccionables los ponemos como selectable=true
-        //Tendrás que cambiar este código por el BFS
-        for(int i = 0; i < Constants.NumTiles; i++)
+        // Implementar BFS. Los nodos seleccionables los ponemos como selectable=true
+        // Tendrás que cambiar este código por el BFS
+
+        tiles[indexcurrentTile].visited = true;
+        tiles[indexcurrentTile].distance = 0;
+        tiles[indexcurrentTile].parent = null;
+
+        nodes.Enqueue(tiles[indexcurrentTile]);
+
+        Tile antes;
+
+        while (nodes.Count != 0)
         {
-            tiles[i].selectable = true;
+            antes = nodes.Dequeue();
+            int antes2 = antes.numTile;
+
+            foreach (int adyacente in tiles[antes2].adjacency)
+            {
+                if (tiles[adyacente].visited == false)
+                {
+                    tiles[adyacente].visited = true;
+                    tiles[adyacente].distance = tiles[antes2].distance + 1;
+                    tiles[adyacente].parent = tiles[antes2];
+                    nodes.Enqueue(tiles[adyacente]);
+
+                    if (tiles[adyacente].distance <= 2)
+                    {
+                        if (cop == false)
+                        {
+                            casillasRobber.Add(tiles[adyacente].numTile);
+                        }
+                        tiles[adyacente].selectable = true;
+                        if (cops[0].GetComponent<CopMove>().currentTile == tiles[adyacente].numTile || cops[1].GetComponent<CopMove>().currentTile == tiles[adyacente].numTile)
+                        {
+                            tiles[adyacente].selectable = false;
+                        }
+                    }
+
+                }
+            }
+
         }
-
-
-    }
-     
+    } // FindSelectableTiles()
 }
