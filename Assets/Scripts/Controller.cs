@@ -184,7 +184,6 @@ public class Controller : MonoBehaviour
         tiles[clickedTile].current = true;
         FindSelectableTiles(false);
 
-
         /* 
         - Elegimos una casilla aleatoria entre las seleccionables que puede ir el caco
         - Movemos al caco a esa casilla
@@ -194,10 +193,6 @@ public class Controller : MonoBehaviour
         for (int i = 0; i < casillasRobber.Count; i++)
         {
             Debug.Log(casillasRobber[i]);
-            if (tiles[i].selectable)
-            {
-                casillasRobber.Add(i);
-            }
         }
 
         System.Random ran = new System.Random();
